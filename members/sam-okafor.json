@@ -1,0 +1,23 @@
+{
+  "name": "Sam Okafor",
+  "instagram": "sam_blackelantra",
+  "city": "Fremont, CA",
+  "joined": "2024-08",
+  "bio": "First N. Picked it up bone stock — slowly going through the catalog.",
+  "photo": null,
+  "car": {
+    "model": "Elantra N",
+    "year": 2024,
+    "color": "Phantom Black",
+    "plate": "8NSAM",
+    "transmission": "6MT",
+    "bhp": 286,
+    "tune": "Stock",
+    "mods": [
+      "AEM dryflow filter",
+      "Mishimoto oil cap",
+      "OEM N gloss black grille",
+      "20% tint all around"
+    ]
+  }
+}

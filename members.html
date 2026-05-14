@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#001489" />
+  <title>Members — NorCal N Club</title>
+  <meta name="description" content="The drivers behind NorCal N Club. Hyundai N owners across Northern California — their cars, mods, and tunes." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="nav scrolled" id="nav">
+    <a href="index.html#top" class="nav-brand" aria-label="NorCal N Club home">
+      <span class="brand-mark">N</span>
+      <span class="brand-text">NORCAL <em>N</em> CLUB</span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#events">Events</a>
+      <a href="index.html#gallery">Garage</a>
+      <a href="members.html" aria-current="page">Members</a>
+      <a href="index.html#join">Join</a>
+      <a href="https://www.instagram.com/norcal_n_club/" target="_blank" rel="noopener" class="nav-cta">@norcal_n_club ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section members-page">
+      <div class="section-head">
+        <div class="section-tag">// THE FAMILY</div>
+        <h2 class="section-title">Members.</h2>
+        <p class="section-sub">
+          <span data-member-count>0</span> drivers across Northern California.
+          <button class="reshuffle" id="reshuffle" type="button">↻ Reshuffle</button>
+        </p>
+      </div>
+
+      <div class="members-grid" id="members-grid" aria-live="polite">
+        <div class="members-loading" data-loading>// loading drivers...</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <span class="brand-mark small">N</span>
+        <span>NORCAL <em>N</em> CLUB</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html#about">About</a>
+        <a href="index.html#events">Events</a>
+        <a href="index.html#gallery">Garage</a>
+        <a href="members.html">Members</a>
+        <a href="index.html#join">Join</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/norcal_n_club/" target="_blank" rel="noopener">Instagram</a>
+        <a href="mailto:hello@norcalnclub.com">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> NorCal N Club · Built by drivers, for drivers.</span>
+      <span>Not affiliated with Hyundai Motor Company.</span>
+    </div>
+  </footer>
+
+  <script src="main.js" defer></script>
+  <script src="members.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "Marcus Le",
+  "instagram": "vn_velo_marcus",
+  "city": "Sacramento, CA",
+  "joined": "2023-06",
+  "bio": "Veloster N from new. Track-focused build. HPDE regular at Thunderhill and Sonoma.",
+  "photo": null,
+  "car": {
+    "model": "Veloster N",
+    "year": 2021,
+    "color": "Sonic Silver",
+    "plate": "VELO-N",
+    "transmission": "6MT",
+    "bhp": 305,
+    "tune": "ECU Connect Stage 2 · E30",
+    "mods": [
+      "ECU Connect Stage 2 flash",
+      "BC Racing DS coilovers",
+      "SPL front lower control arms",
+      "AP Racing front BBK",
+      "G-LOC R12 pads",
+      "Sparco Evo II race seat",
+      "Schroth Profi II 6-pt harness",
+      "Velossa Tech BIG MOUTH",
+      "Apex EC-7 — 18x9.5"
+    ]
+  }
+}

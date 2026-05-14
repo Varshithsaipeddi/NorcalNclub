@@ -1,0 +1,22 @@
+{
+  "name": "Priya Rao",
+  "instagram": "priya_konan",
+  "city": "Oakland, CA",
+  "joined": "2023-11",
+  "bio": "Kona N daily that does double duty as a weekend mountain runner. No mods, all driver.",
+  "photo": null,
+  "car": {
+    "model": "Kona N",
+    "year": 2022,
+    "color": "Cyber Gray",
+    "plate": "KONA-N",
+    "transmission": "8DCT",
+    "bhp": 286,
+    "tune": "Stock",
+    "mods": [
+      "Continental ExtremeContact Sport tires",
+      "Hawk HPS pads (front)",
+      "Window tint 20%"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Alex Chen",
+  "instagram": "alex_n_dct",
+  "city": "San Jose, CA",
+  "joined": "2024-03",
+  "bio": "Weekend canyon driver, weekday commuter. Working on a track build for next year.",
+  "photo": null,
+  "car": {
+    "model": "Elantra N",
+    "year": 2023,
+    "color": "Performance Blue",
+    "plate": "8N CLUB",
+    "transmission": "DCT",
+    "bhp": 320,
+    "tune": "JB4 Stage 2 · 93 oct",
+    "mods": [
+      "JB4 Stage 2 piggyback",
+      "BC Racing BR coilovers",
+      "Eibach front camber arms",
+      "Cobb intake",
+      "Resonator + muffler delete",
+      "Vorsteiner V-FF 107 — 19x9"
+    ]
+  }
+}
