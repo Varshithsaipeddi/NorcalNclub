@@ -769,9 +769,22 @@ input, select, textarea { font: inherit; color: inherit; }
   grid-column: 1 / -1;
   font-family: var(--font-mono); font-size: 13px;
   color: var(--ink-mute);
-  padding: 60px 0;
+  padding: 40px 0;
   text-align: center;
+  position: relative;
 }
+.members-loading {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.02) 0%,
+    rgba(31,77,255,0.10) 50%,
+    rgba(255,255,255,0.02) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  letter-spacing: .15em;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
 
 .member-card {
   --accent: var(--n-blue-bright);
@@ -981,8 +994,24 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* Phone */
 @media (max-width: 540px) {
-  /* Hide grid background on small screens (was visual-only, costs perf) */
-  .grid-overlay { background-size: 32px 32px; opacity: .6; }
+  /* Drop decorative full-screen overlays on phones — pure paint cost, no signal */
+  .grid-overlay, .scanlines { display: none; }
+
+  /* The huge blurred radial glows are the single most expensive thing for mobile GPUs.
+     Replace with a static gradient — same vibe, free. */
+  .hero-glow { display: none; }
+  .hero-gradient {
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 25%, rgba(0,20,137,0.55), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 85% 80%, rgba(255,46,61,0.40), transparent 65%),
+      linear-gradient(180deg, #07091a 0%, #05060a 60%, #03040a 100%);
+  }
+  .hero-stripes { display: none; }
+
+  /* Kill perpetual animations on mobile (battery + jank) */
+  .hero-title .accent { animation: rise .8s var(--ease) forwards; background-size: 100% 100%; }
+  .marquee-track { animation-duration: 60s; }
+  .eyebrow .dot { animation: none; }
 
   .nav { padding-top: 14px; padding-bottom: 14px; }
   .brand-text { font-size: 12px; letter-spacing: .12em; }

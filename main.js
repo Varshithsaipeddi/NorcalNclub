@@ -57,9 +57,12 @@
   }, { threshold: 0.5 });
   $$('[data-count]').forEach(el => statIO.observe(el));
 
-  // Subtle parallax on hero glows
+  // Subtle parallax on hero glows — skip on touch / reduced-motion / narrow screens
   const glows = $$('.hero-glow');
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && glows.length) {
+  const hasFinePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const wideEnough = matchMedia('(min-width: 800px)').matches;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (hasFinePointer && wideEnough && !reducedMotion && glows.length) {
     document.addEventListener('mousemove', (e) => {
       const x = (e.clientX / window.innerWidth - 0.5) * 30;
       const y = (e.clientY / window.innerHeight - 0.5) * 30;
