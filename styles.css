@@ -170,7 +170,7 @@ input, select, textarea { font: inherit; color: inherit; }
   position: relative;
   min-height: 100svh;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 120px clamp(20px, 5vw, 60px) 80px;
+  padding: 120px clamp(18px, 5vw, 60px) 100px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -231,7 +231,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .hero-title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(56px, 11vw, 168px);
+  font-size: clamp(44px, 12vw, 168px);
   line-height: .92;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -297,7 +297,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .btn-ghost:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 24px rgba(0,229,255,.25); }
 
 .hero-stats {
-  margin-top: 64px;
+  margin-top: 56px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0,1fr));
   gap: 1px;
@@ -370,7 +370,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .section-title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(36px, 6vw, 76px);
+  font-size: clamp(30px, 6vw, 76px);
   letter-spacing: -0.01em;
   line-height: 1;
   text-transform: uppercase;
@@ -762,7 +762,7 @@ input, select, textarea { font: inherit; color: inherit; }
 
 .members-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 20px;
 }
 .members-loading, .members-empty {
@@ -941,6 +941,122 @@ input, select, textarea { font: inherit; color: inherit; }
 
 @media (max-width: 480px) {
   .member-spec { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =============== MOBILE TUNING =============== */
+
+/* Notch-safe nav padding */
+.nav {
+  padding-left: max(clamp(20px, 4vw, 48px), env(safe-area-inset-left));
+  padding-right: max(clamp(20px, 4vw, 48px), env(safe-area-inset-right));
+}
+
+/* iOS input zoom-on-focus fix — inputs must be 16px+ */
+.join-form input, .join-form select { font-size: 16px; }
+
+/* Make tap targets bigger and prevent tap-highlight color flash */
+a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.event-rsvp { padding: 12px 16px; min-height: 44px; display: inline-flex; align-items: center; }
+.btn { min-height: 48px; }
+
+/* Honor iOS safe areas at the bottom */
+.footer { padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+
+/* Tablet & small laptop */
+@media (max-width: 800px) {
+  .hero-sub { font-size: 16px; }
+  .hero-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .hero-stats { margin-top: 44px; }
+  .stat { padding: 16px 12px; }
+  .stat-num { font-size: 26px; }
+
+  .section { padding: clamp(64px, 12vw, 120px) clamp(18px, 5vw, 32px); }
+  .section-head { margin-bottom: 36px; }
+  .members-page { padding-top: 100px; }
+
+  /* Member card head: badge under name on narrow */
+  .member-head { grid-template-columns: auto 1fr; }
+  .member-badge { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+}
+
+/* Phone */
+@media (max-width: 540px) {
+  /* Hide grid background on small screens (was visual-only, costs perf) */
+  .grid-overlay { background-size: 32px 32px; opacity: .6; }
+
+  .nav { padding-top: 14px; padding-bottom: 14px; }
+  .brand-text { font-size: 12px; letter-spacing: .12em; }
+  .brand-mark { width: 30px; height: 30px; font-size: 16px; }
+
+  .eyebrow { font-size: 10px; padding: 5px 10px; margin-bottom: 22px; }
+
+  .hero { padding-top: 100px; padding-bottom: 90px; }
+  .hero-sub { margin-top: 22px; font-size: 15px; }
+  .hero-actions { gap: 10px; margin-top: 28px; }
+  .btn { padding: 13px 18px; font-size: 11px; letter-spacing: .15em; }
+
+  /* 2x2 stats instead of 1x4 cramped row */
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 28px; }
+  .stat-label { font-size: 9px; }
+
+  .hero-marquee { font-size: 10px; letter-spacing: .25em; padding: 10px 0; }
+  .marquee-track { gap: 22px; }
+
+  .section-tag { font-size: 10px; letter-spacing: .25em; padding-left: 20px; }
+  .section-sub { font-size: 16px; }
+
+  /* About card — tighter padding */
+  .about-card { padding: 20px; }
+  .about-list li { padding: 10px 12px; font-size: 15px; }
+  .lead { font-size: 17px; }
+
+  /* Events — stack date row above content for breathing room */
+  .event-card { flex-wrap: wrap; padding: 18px; gap: 14px; }
+  .event-date {
+    flex-direction: row; gap: 10px;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 12px 0;
+    align-items: baseline; justify-content: flex-start;
+  }
+  .event-day { font-size: 30px; }
+  .event-rsvp { width: 100%; justify-content: center; }
+  .event-meta h3 { font-size: 16px; }
+
+  /* Join card spacing */
+  .join-left, .join-form { padding: 24px 20px; }
+  .link-tile { padding: 14px; gap: 12px; }
+  .link-icon { width: 34px; height: 34px; font-size: 16px; }
+  .link-body strong { font-size: 13px; }
+
+  /* Members tweaks */
+  .member-card { padding: 20px; }
+  .member-photo { width: 50px; height: 50px; font-size: 16px; }
+  .member-id h3 { font-size: 16px; }
+  .member-spec strong { font-size: 13px; }
+  .member-mods li { font-size: 10px; padding: 4px 8px; }
+
+  .footer-row { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .footer-bottom { flex-direction: column; gap: 6px; font-size: 10px; }
+}
+
+/* Very narrow (iPhone SE 1st gen, etc.) */
+@media (max-width: 360px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 24px; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
+  .nav-brand { gap: 8px; }
+  .brand-text { display: none; }
+}
+
+/* Landscape phones — keep hero readable without scrolling forever */
+@media (max-height: 560px) and (orientation: landscape) {
+  .hero { min-height: auto; padding-top: 90px; padding-bottom: 70px; }
+  .hero-stats { margin-top: 28px; }
+  .hero-marquee { display: none; }
 }
 
 /* =============== UTIL =============== */
