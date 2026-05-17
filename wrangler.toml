@@ -1,0 +1,38 @@
+# Cloudflare Pages + Workers config for the NorCal N Club site.
+# Pages Functions read these bindings via the `env` object.
+#
+# After cloning, run:
+#   wrangler login
+#   wrangler d1 create nclub-db          # paste the database_id below
+#   wrangler r2 bucket create nclub-uploads
+#   wrangler d1 execute nclub-db --remote --file=schema.sql
+#   wrangler d1 execute nclub-db --remote --file=seed.sql
+
+name             = "nclub"
+compatibility_date = "2026-05-01"
+pages_build_output_dir = "."
+
+# ─── Bindings used by Pages Functions ───────────────────────────────────────
+
+[[d1_databases]]
+binding       = "DB"
+database_name = "nclub-db"
+database_id   = ""                # ← fill in after `wrangler d1 create nclub-db`
+
+[[r2_buckets]]
+binding     = "UPLOADS"
+bucket_name = "nclub-uploads"
+
+# Public env vars (non-secrets only). For secrets use:
+#   wrangler pages secret put <NAME>
+[vars]
+# CF Access JWT validation. Find these in:
+#   Zero Trust dash → Access → Applications → your app → Overview
+# AUD = "Application Audience (AUD) Tag"
+# TEAM_DOMAIN = e.g. "nclub.cloudflareaccess.com" (no scheme)
+ACCESS_AUD          = ""
+ACCESS_TEAM_DOMAIN  = ""
+
+# Public R2 bucket URL prefix (set after enabling Public Access on the bucket)
+# e.g. "https://pub-xxxxxxxxxxxxxxxx.r2.dev" or your own custom subdomain.
+R2_PUBLIC_URL = ""

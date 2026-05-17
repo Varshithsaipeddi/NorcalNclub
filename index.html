@@ -144,63 +144,13 @@
         <p class="section-sub">Pull up. Park up. Push it.</p>
       </div>
 
-      <div class="events-grid">
-        <article class="event-card reveal">
-          <div class="event-date">
-            <span class="event-month">JUN</span>
-            <span class="event-day">07</span>
-          </div>
-          <div class="event-meta">
-            <div class="event-tag">CARS &amp; COFFEE</div>
-            <h3>Bay Area Monthly Meet</h3>
-            <p class="event-where">Alameda · 8:00 AM</p>
-            <p class="event-desc">Kick-off-the-month meet. Donuts, dyno talk, and group photo.</p>
-          </div>
-          <a class="event-rsvp" href="#join">RSVP →</a>
-        </article>
-
-        <article class="event-card reveal">
-          <div class="event-date">
-            <span class="event-month">JUN</span>
-            <span class="event-day">21</span>
-          </div>
-          <div class="event-meta">
-            <div class="event-tag">CANYON RUN</div>
-            <h3>Skyline + Hwy 9 Drive</h3>
-            <p class="event-where">Saratoga Gap · 7:30 AM</p>
-            <p class="event-desc">Tight pack, no heroes. Breakfast at Alice's after.</p>
-          </div>
-          <a class="event-rsvp" href="#join">RSVP →</a>
-        </article>
-
-        <article class="event-card reveal featured">
-          <div class="event-date">
-            <span class="event-month">JUL</span>
-            <span class="event-day">19</span>
-          </div>
-          <div class="event-meta">
-            <div class="event-tag">TRACK DAY</div>
-            <h3>Laguna Seca HPDE</h3>
-            <p class="event-where">Mazda Raceway · All Day</p>
-            <p class="event-desc">N Club caravan + group hot pit. Helmets, brake fluid, send it.</p>
-          </div>
-          <a class="event-rsvp" href="#join">RSVP →</a>
-        </article>
-
-        <article class="event-card reveal">
-          <div class="event-date">
-            <span class="event-month">AUG</span>
-            <span class="event-day">02</span>
-          </div>
-          <div class="event-meta">
-            <div class="event-tag">TECH NIGHT</div>
-            <h3>Alignment + Setup</h3>
-            <p class="event-where">San Jose · 6:00 PM</p>
-            <p class="event-desc">Group rate alignments. Bring your sheet, leave with corner balance.</p>
-          </div>
-          <a class="event-rsvp" href="#join">RSVP →</a>
-        </article>
+      <div class="events-grid" id="events-grid" aria-live="polite">
+        <div class="events-loading" data-events-loading>// loading meets...</div>
       </div>
+      <p class="events-empty hidden" data-events-empty>
+        // No upcoming meets on the calendar yet. Check back soon, or
+        <a href="#join">join the list</a> to get pinged when the next one drops.
+      </p>
     </section>
 
     <!-- GALLERY -->

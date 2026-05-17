@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSVPs — Admin · NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title">RSVPs</h1>
+    <p class="admin-page-sub">Event registrations, grouped by event.</p>
+
+    <div class="admin-toolbar">
+      <span class="grow"></span>
+      <a class="btn-sm" href="/api/admin/rsvps?format=csv">⤓ Export all (CSV)</a>
+    </div>
+
+    <div id="groups">
+      <div class="admin-table-wrap"><table class="admin-table"><tbody><tr><td class="empty">// loading...</td></tr></tbody></table></div>
+    </div>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $, escapeHtml, fmtDateTime } = window.NCAdmin;
+      const root = $('#groups');
+      try {
+        const { rsvps = [] } = await api('/api/admin/rsvps');
+        if (!rsvps.length) {
+          root.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><tbody><tr><td class="empty">No RSVPs yet.</td></tr></tbody></table></div>`;
+          return;
+        }
+        const byEvent = new Map();
+        rsvps.forEach(r => {
+          const k = r.event_id;
+          if (!byEvent.has(k)) byEvent.set(k, { title: r.event_title, when: r.event_starts_at, list: [] });
+          byEvent.get(k).list.push(r);
+        });
+        // Sort events by start date ascending
+        const sorted = [...byEvent.entries()].sort((a, b) => (a[1].when || '').localeCompare(b[1].when || ''));
+        root.innerHTML = sorted.map(([id, g]) => `
+          <section class="rsvp-group">
+            <h3>
+              ${escapeHtml(g.title)} <span class="when">${escapeHtml(fmtDateTime(g.when))}</span>
+              <span class="grow" style="flex:1"></span>
+              <a class="btn-sm" href="/api/admin/rsvps?event_id=${encodeURIComponent(id)}&format=csv">⤓ CSV</a>
+            </h3>
+            <div class="admin-table-wrap"><table class="admin-table">
+              <thead><tr>
+                <th style="width:140px">When</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Car</th>
+                <th>Instagram</th>
+                <th>Notes</th>
+              </tr></thead>
+              <tbody>${g.list.map(r => `
+                <tr>
+                  <td><span class="num">${escapeHtml(fmtDateTime(r.created_at))}</span></td>
+                  <td>${escapeHtml(r.name)}</td>
+                  <td><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td>
+                  <td>${escapeHtml(r.car || '—')}</td>
+                  <td>${r.instagram ? `<a href="https://instagram.com/${encodeURIComponent(r.instagram)}" target="_blank" rel="noopener">@${escapeHtml(r.instagram)}</a>` : '—'}</td>
+                  <td>${escapeHtml(r.notes || '')}</td>
+                </tr>`).join('')}</tbody>
+            </table></div>
+          </section>
+        `).join('');
+      } catch (err) {
+        root.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><tbody><tr><td class="empty">${err.message}</td></tr></tbody></table></div>`;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit event — Admin · NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title" id="page-title">New event</h1>
+    <p class="admin-page-sub"><a href="events.html">← Back to events</a></p>
+
+    <form class="admin-form" id="event-form">
+      <label>
+        <span>Title</span>
+        <input name="title" type="text" required maxlength="200" placeholder="Bay Area Monthly Meet" />
+      </label>
+
+      <div class="row">
+        <label>
+          <span>Category</span>
+          <select name="category">
+            <option value="cars-coffee">Cars &amp; Coffee</option>
+            <option value="canyon">Canyon Run</option>
+            <option value="track-day">Track Day</option>
+            <option value="tech-night">Tech Night</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="published">Published</option>
+            <option value="draft">Draft (hidden)</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row">
+        <label>
+          <span>Starts at</span>
+          <input name="starts_at_local" type="datetime-local" required />
+        </label>
+        <label>
+          <span>Ends at (optional)</span>
+          <input name="ends_at_local" type="datetime-local" />
+        </label>
+      </div>
+
+      <label>
+        <span>Location</span>
+        <input name="location" type="text" maxlength="200" placeholder="Alameda · 8:00 AM" />
+      </label>
+
+      <label>
+        <span>Description</span>
+        <textarea name="description" rows="4" maxlength="4000" placeholder="What to expect, where to park, what to bring..."></textarea>
+      </label>
+
+      <div class="row">
+        <label>
+          <span>Capacity (blank = unlimited)</span>
+          <input name="capacity" type="number" min="1" max="9999" placeholder="e.g. 25" />
+        </label>
+        <label class="check" style="align-self:end; padding-bottom:12px;">
+          <input name="rsvp_required" type="checkbox" />
+          <span>Show RSVP form on event page</span>
+        </label>
+      </div>
+
+      <label class="check">
+        <input name="featured" type="checkbox" />
+        <span>Featured (highlighted on home page)</span>
+      </label>
+
+      <div class="upload">
+        <div class="upload-preview" id="preview"></div>
+        <div class="upload-info">
+          <strong style="color:var(--ink); font-family:var(--font-display); letter-spacing:.1em">Cover image</strong>
+          <span id="upload-status">No image yet. JPG/PNG/WEBP, up to 8MB.</span>
+          <input type="file" id="image-input" accept="image/*" />
+          <button type="button" class="btn-sm" id="upload-btn">Choose &amp; upload</button>
+        </div>
+      </div>
+      <input type="hidden" name="image_key" id="image-key" />
+
+      <div class="admin-form-actions">
+        <button type="submit" class="btn-sm primary" id="save-btn">Save event</button>
+        <a href="events.html" class="btn-sm">Cancel</a>
+        <span class="grow"></span>
+        <p class="admin-form-note" data-form-note></p>
+      </div>
+    </form>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $, escapeHtml, isoToLocalInput, localInputToIso } = window.NCAdmin;
+      const form = $('#event-form');
+      const note = $('[data-form-note]');
+      const id = new URL(location.href).searchParams.get('id');
+      const isEdit = !!id;
+
+      const setPreview = (url) => {
+        const el = $('#preview');
+        el.style.backgroundImage = url ? `url('${url}')` : '';
+      };
+
+      // Pre-fill if editing
+      if (isEdit) {
+        $('#page-title').textContent = 'Edit event';
+        try {
+          const { event } = await api(`/api/admin/events/${encodeURIComponent(id)}`);
+          form.elements.title.value = event.title || '';
+          form.elements.category.value = event.category || 'other';
+          form.elements.status.value = event.status || 'published';
+          form.elements.starts_at_local.value = isoToLocalInput(event.starts_at);
+          form.elements.ends_at_local.value = isoToLocalInput(event.ends_at);
+          form.elements.location.value = event.location || '';
+          form.elements.description.value = event.description || '';
+          form.elements.capacity.value = event.capacity ?? '';
+          form.elements.rsvp_required.checked = !!event.rsvp_required;
+          form.elements.featured.checked = !!event.featured;
+          if (event.image_key) {
+            $('#image-key').value = event.image_key;
+            $('#upload-status').textContent = `Current: ${event.image_key}`;
+            if (event.image_url) setPreview(event.image_url);
+          }
+        } catch (err) {
+          note.textContent = `// Couldn't load event: ${err.message}`;
+        }
+      }
+
+      // Image upload
+      const fileInput = $('#image-input');
+      const uploadBtn = $('#upload-btn');
+      const status = $('#upload-status');
+      uploadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        status.textContent = `Uploading ${file.name}...`;
+        const fd = new FormData(); fd.append('file', file);
+        try {
+          const out = await api('/api/admin/upload', { method: 'POST', body: fd, isForm: true });
+          $('#image-key').value = out.key;
+          status.textContent = `✓ ${out.key} (${Math.round(out.size / 1024)}KB)`;
+          if (out.url) setPreview(out.url);
+        } catch (err) {
+          status.textContent = `✗ Upload failed: ${err.message}`;
+        }
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = $('#save-btn');
+        btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'Saving...';
+        note.textContent = '';
+
+        const fd = new FormData(form);
+        const payload = {
+          title: fd.get('title'),
+          category: fd.get('category'),
+          status: fd.get('status'),
+          starts_at: localInputToIso(fd.get('starts_at_local')),
+          ends_at:   localInputToIso(fd.get('ends_at_local')) || null,
+          location: fd.get('location') || null,
+          description: fd.get('description') || null,
+          capacity: fd.get('capacity') === '' ? null : Number(fd.get('capacity')),
+          rsvp_required: !!fd.get('rsvp_required'),
+          featured: !!fd.get('featured'),
+          image_key: fd.get('image_key') || null,
+        };
+
+        try {
+          if (isEdit) {
+            await api(`/api/admin/events/${encodeURIComponent(id)}`, { method: 'PATCH', body: payload });
+            note.textContent = `// Saved.`;
+          } else {
+            const out = await api('/api/admin/events', { method: 'POST', body: payload });
+            location.href = `event-edit.html?id=${encodeURIComponent(out.event.id)}`;
+            return;
+          }
+        } catch (err) {
+          note.textContent = `// ${err.message}`;
+        } finally {
+          btn.disabled = false; btn.textContent = oldText;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -71,17 +71,115 @@
     }, { passive: true });
   }
 
-  // Form handler — placeholder. Wire to Formspree / Netlify / your endpoint later.
+  // ─── Events: fetch from /api/events and render into the existing grid ───
+  const escapeHtml = (v) => String(v ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const CATEGORY_LABEL = {
+    'cars-coffee': 'CARS & COFFEE',
+    'canyon':      'CANYON RUN',
+    'track-day':   'TRACK DAY',
+    'tech-night':  'TECH NIGHT',
+    'other':       'MEET',
+  };
+
+  const fmtMonth = (d) => d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  const fmtDay   = (d) => String(d.getDate()).padStart(2, '0');
+  const fmtTime  = (d) => d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+  const renderEventCard = (ev) => {
+    const start = new Date(ev.starts_at);
+    const tag = CATEGORY_LABEL[ev.category] || 'MEET';
+    const where = [ev.location, fmtTime(start)].filter(Boolean).join(' · ');
+    const featured = ev.featured ? ' featured' : '';
+    const rsvpHref = ev.rsvp_required ? `event.html?slug=${encodeURIComponent(ev.slug)}` : '#join';
+    const spotsBadge = ev.capacity != null
+      ? (ev.spots_left === 0
+          ? `<span class="event-spots full">Full</span>`
+          : `<span class="event-spots">${ev.spots_left} of ${ev.capacity} left</span>`)
+      : '';
+    return `
+      <article class="event-card reveal${featured}">
+        <div class="event-date">
+          <span class="event-month">${escapeHtml(fmtMonth(start))}</span>
+          <span class="event-day">${escapeHtml(fmtDay(start))}</span>
+        </div>
+        <div class="event-meta">
+          <div class="event-tag">${escapeHtml(tag)}</div>
+          <h3>${escapeHtml(ev.title)}</h3>
+          <p class="event-where">${escapeHtml(where)}</p>
+          ${ev.description ? `<p class="event-desc">${escapeHtml(ev.description)}</p>` : ''}
+          ${spotsBadge}
+        </div>
+        <a class="event-rsvp" href="${rsvpHref}">${ev.rsvp_required ? 'Details →' : 'RSVP →'}</a>
+      </article>
+    `;
+  };
+
+  const loadEvents = async () => {
+    const grid = $('#events-grid');
+    const empty = $('[data-events-empty]');
+    if (!grid) return;
+    try {
+      const res = await fetch('/api/events', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { events = [] } = await res.json();
+      if (!events.length) {
+        grid.innerHTML = '';
+        empty?.classList.remove('hidden');
+        return;
+      }
+      grid.innerHTML = events.map(renderEventCard).join('');
+      // Apply the reveal animation immediately for cards already in view.
+      requestAnimationFrame(() => grid.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('visible');
+        else io.observe(el);
+      }));
+    } catch (err) {
+      console.error('events load failed:', err);
+      grid.innerHTML = `<div class="events-loading">// couldn't load meets. Try again in a moment.</div>`;
+    }
+  };
+  loadEvents();
+
+  // ─── Forms ────────────────────────────────────────────────────────────────
+  const submit = async (form, url, noteEl, successMsg) => {
+    const btn = form.querySelector('button[type="submit"]');
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Sending…'; }
+    if (noteEl) noteEl.textContent = '';
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || `HTTP ${res.status}`);
+      if (noteEl) noteEl.textContent = `// ${successMsg}`;
+      form.reset();
+      return out;
+    } catch (err) {
+      if (noteEl) noteEl.textContent = `// ${err.message}`;
+      throw err;
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Send'; }
+    }
+  };
+
   window.NCLUB = {
-    handleJoin(e) {
+    submit,
+    async handleJoin(e) {
       e.preventDefault();
       const note = $('[data-form-note]');
       const fd = new FormData(e.target);
-      const data = Object.fromEntries(fd.entries());
-      console.log('Join request:', data);
-      note.textContent = `// Thanks ${data.name.split(' ')[0]}. We'll be in touch.`;
-      e.target.reset();
+      const firstName = String(fd.get('name') || 'there').split(' ')[0];
+      try {
+        await submit(e.target, '/api/members', note, `Thanks ${firstName}. We'll be in touch.`);
+      } catch {/* shown in note */}
       return false;
-    }
+    },
   };
 })();
