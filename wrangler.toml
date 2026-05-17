@@ -17,7 +17,7 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding       = "DB"
 database_name = "nclub-db"
-database_id   = ""                # ← fill in after `wrangler d1 create nclub-db`
+database_id   = "bbfd74a0-6b16-45c4-b3b8-9734d98ad5a4"                # ← fill in after `wrangler d1 create nclub-db`
 
 [[r2_buckets]]
 binding     = "UPLOADS"
@@ -35,4 +35,4 @@ ACCESS_TEAM_DOMAIN  = ""
 
 # Public R2 bucket URL prefix (set after enabling Public Access on the bucket)
 # e.g. "https://pub-xxxxxxxxxxxxxxxx.r2.dev" or your own custom subdomain.
-R2_PUBLIC_URL = ""
+R2_PUBLIC_URL = "https://pub-5e7a74346e40475e8f584aa66366bc96.r2.dev"

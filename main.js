@@ -143,6 +143,69 @@
   };
   loadEvents();
 
+  // ─── Garage: fetch from /api/members and render a sampled strip ──────────
+  const N_ACCENT = {
+    'Elantra N':  '#1f4dff',
+    'Kona N':     '#ff2bd6',
+    'Veloster N': '#00e5ff',
+    'i30 N':      '#00ff9d',
+    'i20 N':      '#ffe600',
+  };
+  const DEFAULT_ACCENT = '#ff2e3d';
+  const GARAGE_MAX = 6;
+
+  const sample = (arr, n) => {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.slice(0, n);
+  };
+
+  const renderRideCard = (m) => {
+    const c = m.car || {};
+    const model = c.model || 'N';
+    const accent = N_ACCENT[model] || DEFAULT_ACCENT;
+    const caption = [c.color, m.instagram ? `@${m.instagram}` : null].filter(Boolean).join(' · ');
+    const placeholder = [model, c.color].filter(Boolean).join(' · ');
+    const imgAttrs = m.photo
+      ? `style="background-image:url('${escapeHtml(m.photo)}'); background-size:cover; background-position:center"`
+      : `data-car="${escapeHtml(placeholder)}"`;
+    return `
+      <figure class="ride reveal" style="--accent:${accent}">
+        <div class="ride-img" ${imgAttrs}></div>
+        <figcaption>
+          <strong>${escapeHtml(model)}</strong>
+          ${caption ? `<span>${escapeHtml(caption)}</span>` : ''}
+        </figcaption>
+      </figure>
+    `;
+  };
+
+  const loadGarage = async () => {
+    const grid = $('#gallery-grid');
+    if (!grid) return;
+    try {
+      const res = await fetch('/api/members', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { members = [] } = await res.json();
+      if (!members.length) {
+        grid.innerHTML = `<div class="events-loading">// no rides in the Garage yet — be the first to <a href="#join">join</a>.</div>`;
+        return;
+      }
+      grid.innerHTML = sample(members, GARAGE_MAX).map(renderRideCard).join('');
+      requestAnimationFrame(() => grid.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('visible');
+        else io.observe(el);
+      }));
+    } catch (err) {
+      console.error('garage load failed:', err);
+      grid.innerHTML = `<div class="events-loading">// couldn't load the Garage. Try again in a moment.</div>`;
+    }
+  };
+  loadGarage();
+
   // ─── Forms ────────────────────────────────────────────────────────────────
   const submit = async (form, url, noteEl, successMsg) => {
     const btn = form.querySelector('button[type="submit"]');
