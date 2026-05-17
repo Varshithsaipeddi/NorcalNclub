@@ -1,6 +1,8 @@
-# Cloudflare Pages + Workers config for the NorCal N Club site.
-# Pages Functions read these bindings via the `env` object.
+# Cloudflare Worker config (Workers + Static Assets model) for the
+# NorCal N Club site. Static files served from the repo root via the
+# ASSETS binding; API routing happens in _worker.js.
 #
+# Deploy: `npx wrangler deploy` (the CF Pages dashboard build command).
 # After cloning, run:
 #   wrangler login
 #   wrangler d1 create nclub-db          # paste the database_id below
@@ -8,23 +10,29 @@
 #   wrangler d1 execute nclub-db --remote --file=schema.sql
 #   wrangler d1 execute nclub-db --remote --file=seed.sql
 
-name             = "norcalnclub"
+name               = "norcalnclub"
 compatibility_date = "2026-05-01"
-pages_build_output_dir = "."
+main               = "_worker.js"
 
-# ─── Bindings used by Pages Functions ───────────────────────────────────────
+# ─── Static asset bundle (everything not server-side) ──────────────────────
+# Files to exclude from the bundle live in `.assetsignore`.
+[assets]
+directory = "."
+binding   = "ASSETS"
+
+# ─── Bindings used by the API handlers ─────────────────────────────────────
 
 [[d1_databases]]
 binding       = "DB"
 database_name = "nclub-db"
-database_id   = "bbfd74a0-6b16-45c4-b3b8-9734d98ad5a4"                # ← fill in after `wrangler d1 create nclub-db`
+database_id   = "bbfd74a0-6b16-45c4-b3b8-9734d98ad5a4"
 
 [[r2_buckets]]
 binding     = "UPLOADS"
 bucket_name = "nclub-uploads"
 
 # Public env vars (non-secrets only). For secrets use:
-#   wrangler pages secret put <NAME>
+#   wrangler secret put <NAME>
 [vars]
 # CF Access JWT validation. Find these in:
 #   Zero Trust dash → Access → Applications → your app → Overview

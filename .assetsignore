@@ -1,0 +1,25 @@
+# Files that should NOT be uploaded to the static asset bundle.
+# Anything listed here stays in the repo but isn't web-accessible.
+
+_worker.js
+functions/
+
+# DB + infra config
+schema.sql
+seed.sql
+wrangler.toml
+.wrangler/
+
+# Repo metadata / docs
+README.md
+SETUP.md
+.gitignore
+.nojekyll
+CNAME
+
+# Legacy data files no longer referenced (Garage now reads from D1)
+members/
+
+# Local debugging artifacts
+.playwright-mcp/
+cf-*.png
