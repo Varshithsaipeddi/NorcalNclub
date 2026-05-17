@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events — Admin · NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title">Events</h1>
+    <p class="admin-page-sub">Create and edit meets, drives, track days.</p>
+
+    <div class="admin-toolbar">
+      <input type="search" id="search" placeholder="Search title or location..." />
+      <span class="grow"></span>
+      <a href="event-edit.html" class="btn-sm primary">+ New event</a>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:140px">When</th>
+            <th>Title</th>
+            <th style="width:140px">Category</th>
+            <th style="width:100px" class="num">RSVPs</th>
+            <th style="width:120px">Status</th>
+            <th style="width:180px"></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="6" class="empty">// loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $, escapeHtml, fmtDateTime } = window.NCAdmin;
+      const tbody = $('#rows');
+      const search = $('#search');
+      let events = [];
+
+      const render = (filter = '') => {
+        const q = filter.toLowerCase();
+        const filtered = events.filter(e =>
+          !q || (e.title || '').toLowerCase().includes(q) || (e.location || '').toLowerCase().includes(q)
+        );
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty">No events match.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = filtered.map(e => `
+          <tr>
+            <td><span class="num">${escapeHtml(fmtDateTime(e.starts_at))}</span></td>
+            <td><strong>${escapeHtml(e.title)}</strong> ${e.featured ? '<span class="badge featured">FEATURED</span>' : ''}<br>
+                <small style="color:var(--ink-mute);font-family:var(--font-mono);font-size:11px">${escapeHtml(e.location || '')}</small></td>
+            <td>${escapeHtml(e.category || '—')}</td>
+            <td class="num">${e.rsvp_count}${e.capacity != null ? ' / ' + e.capacity : ''}</td>
+            <td><span class="badge ${escapeHtml(e.status)}">${escapeHtml(e.status)}</span></td>
+            <td class="actions">
+              <a class="btn-sm" href="event-edit.html?id=${encodeURIComponent(e.id)}">Edit</a>
+              <button class="btn-sm danger" data-delete="${escapeHtml(e.id)}" data-title="${escapeHtml(e.title)}">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      };
+
+      try {
+        const out = await api('/api/admin/events');
+        events = out.events || [];
+        render();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty">${err.message}</td></tr>`;
+        return;
+      }
+
+      search.addEventListener('input', (e) => render(e.target.value));
+
+      tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-delete]');
+        if (!btn) return;
+        const id = btn.dataset.delete;
+        const title = btn.dataset.title;
+        if (!confirm(`Delete "${title}"? This removes the event and all its RSVPs.`)) return;
+        btn.disabled = true; btn.textContent = 'Deleting...';
+        try {
+          await api(`/api/admin/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          events = events.filter(x => x.id !== id);
+          render(search.value);
+        } catch (err) {
+          alert(`Delete failed: ${err.message}`);
+          btn.disabled = false; btn.textContent = 'Delete';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

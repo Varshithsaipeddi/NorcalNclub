@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Members — Admin · NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title">Members</h1>
+    <p class="admin-page-sub">Drivers shown on the public Garage page.</p>
+
+    <div class="admin-toolbar">
+      <input type="search" id="search" placeholder="Search name, model, plate..." />
+      <span class="grow"></span>
+      <button class="btn-sm primary" id="new-btn">+ New member</button>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr>
+          <th>Name</th>
+          <th>City</th>
+          <th>Car</th>
+          <th>Plate</th>
+          <th>BHP</th>
+          <th>Status</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="rows"><tr><td colspan="7" class="empty">// loading...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Inline editor (simple, no separate page) -->
+    <details id="editor" style="margin-top:32px;">
+      <summary style="cursor:pointer; font-family:var(--font-display); letter-spacing:.15em; color:var(--neon-cyan); padding:12px 0;">
+        Editing: <span id="editor-name">—</span>
+      </summary>
+      <form class="admin-form" id="member-form" style="margin-top:16px;">
+        <input type="hidden" name="id" />
+        <div class="row">
+          <label><span>Name</span><input name="name" type="text" required /></label>
+          <label><span>Instagram (no @)</span><input name="instagram" type="text" /></label>
+        </div>
+        <div class="row">
+          <label><span>City</span><input name="city" type="text" placeholder="San Jose, CA" /></label>
+          <label><span>Joined (YYYY-MM)</span><input name="joined" type="text" placeholder="2024-03" /></label>
+        </div>
+        <label><span>Bio</span><textarea name="bio" rows="2"></textarea></label>
+
+        <div class="row">
+          <label><span>Model</span>
+            <select name="car_model">
+              <option value="">—</option>
+              <option>Elantra N</option><option>Kona N</option>
+              <option>Veloster N</option><option>i30 N</option><option>i20 N</option>
+            </select>
+          </label>
+          <label><span>Year</span><input name="car_year" type="number" min="2018" max="2030" /></label>
+        </div>
+        <div class="row">
+          <label><span>Color</span><input name="car_color" type="text" placeholder="Performance Blue" /></label>
+          <label><span>Plate</span><input name="car_plate" type="text" placeholder="8N CLUB" /></label>
+        </div>
+        <div class="row">
+          <label><span>Transmission</span>
+            <select name="car_transmission">
+              <option value="">—</option>
+              <option>6MT</option><option>DCT</option><option>8DCT</option>
+            </select>
+          </label>
+          <label><span>BHP</span><input name="car_bhp" type="number" min="100" max="1000" /></label>
+        </div>
+        <label><span>Tune</span><input name="car_tune" type="text" placeholder="JB4 Stage 2 · 93 oct" /></label>
+        <label><span>Mods (one per line)</span><textarea name="car_mods" rows="6" placeholder="JB4 Stage 2 piggyback&#10;BC Racing coilovers&#10;..."></textarea></label>
+
+        <label class="check">
+          <input name="status" type="checkbox" />
+          <span>Archived (hide from public Garage)</span>
+        </label>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="btn-sm primary" id="save-btn">Save</button>
+          <button type="button" class="btn-sm" id="cancel-btn">Cancel</button>
+          <span class="grow"></span>
+          <p class="admin-form-note" data-form-note></p>
+        </div>
+      </form>
+    </details>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $, escapeHtml } = window.NCAdmin;
+      const tbody = $('#rows');
+      const search = $('#search');
+      const editor = $('#editor');
+      const form = $('#member-form');
+      const note = $('[data-form-note]');
+      let members = [];
+
+      const render = (filter = '') => {
+        const q = filter.toLowerCase();
+        const filtered = members.filter(m => !q ||
+          [m.name, m.car?.model, m.car?.plate, m.city].some(x => (x || '').toLowerCase().includes(q)));
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty">No members.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = filtered.map(m => `
+          <tr>
+            <td><strong>${escapeHtml(m.name)}</strong>${m.instagram ? `<br><small style="color:var(--ink-mute);font-family:var(--font-mono);font-size:11px">@${escapeHtml(m.instagram)}</small>` : ''}</td>
+            <td>${escapeHtml(m.city || '—')}</td>
+            <td>${escapeHtml(m.car?.model || '—')} ${m.car?.year || ''}</td>
+            <td><span class="num">${escapeHtml(m.car?.plate || '—')}</span></td>
+            <td class="num">${m.car?.bhp ?? '—'}</td>
+            <td><span class="badge ${escapeHtml(m.status)}">${escapeHtml(m.status)}</span></td>
+            <td class="actions">
+              <button class="btn-sm" data-edit="${escapeHtml(m.id)}">Edit</button>
+              <button class="btn-sm danger" data-delete="${escapeHtml(m.id)}" data-name="${escapeHtml(m.name)}">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      };
+
+      const reload = async () => {
+        try { ({ members } = await api('/api/admin/members')); render(search.value); }
+        catch (err) { tbody.innerHTML = `<tr><td colspan="7" class="empty">${err.message}</td></tr>`; }
+      };
+
+      const fillForm = (m) => {
+        editor.open = true;
+        $('#editor-name').textContent = m.name || '(new)';
+        const f = form.elements;
+        f.id.value = m.id || '';
+        f.name.value = m.name || '';
+        f.instagram.value = m.instagram || '';
+        f.city.value = m.city || '';
+        f.joined.value = m.joined || '';
+        f.bio.value = m.bio || '';
+        f.car_model.value = m.car?.model || '';
+        f.car_year.value = m.car?.year ?? '';
+        f.car_color.value = m.car?.color || '';
+        f.car_plate.value = m.car?.plate || '';
+        f.car_transmission.value = m.car?.transmission || '';
+        f.car_bhp.value = m.car?.bhp ?? '';
+        f.car_tune.value = m.car?.tune || '';
+        f.car_mods.value = (m.car?.mods || []).join('\n');
+        f.status.checked = m.status === 'archived';
+        editor.scrollIntoView({ behavior: 'smooth' });
+      };
+
+      $('#new-btn').addEventListener('click', () => fillForm({}));
+      $('#cancel-btn').addEventListener('click', () => { editor.open = false; form.reset(); note.textContent = ''; });
+      search.addEventListener('input', (e) => render(e.target.value));
+
+      tbody.addEventListener('click', async (e) => {
+        const eb = e.target.closest('[data-edit]');
+        const db = e.target.closest('[data-delete]');
+        if (eb) {
+          const m = members.find(x => x.id === eb.dataset.edit);
+          if (m) fillForm(m);
+        } else if (db) {
+          if (!confirm(`Delete member ${db.dataset.name}?`)) return;
+          try {
+            await api(`/api/admin/members/${encodeURIComponent(db.dataset.delete)}`, { method: 'DELETE' });
+            await reload();
+          } catch (err) { alert(`Delete failed: ${err.message}`); }
+        }
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = form.elements;
+        const id = f.id.value.trim();
+        const payload = {
+          name: f.name.value,
+          instagram: f.instagram.value || null,
+          city: f.city.value || null,
+          joined: f.joined.value || null,
+          bio: f.bio.value || null,
+          status: f.status.checked ? 'archived' : 'published',
+          car: {
+            model: f.car_model.value || null,
+            year:  f.car_year.value === '' ? null : Number(f.car_year.value),
+            color: f.car_color.value || null,
+            plate: f.car_plate.value || null,
+            transmission: f.car_transmission.value || null,
+            bhp:   f.car_bhp.value === '' ? null : Number(f.car_bhp.value),
+            tune:  f.car_tune.value || null,
+            mods:  f.car_mods.value.split('\n').map(s => s.trim()).filter(Boolean),
+          },
+        };
+        const btn = $('#save-btn');
+        btn.disabled = true; const oldText = btn.textContent; btn.textContent = 'Saving...';
+        note.textContent = '';
+        try {
+          if (id) await api(`/api/admin/members/${encodeURIComponent(id)}`, { method: 'PATCH', body: payload });
+          else    await api('/api/admin/members', { method: 'POST', body: payload });
+          note.textContent = '// Saved.';
+          await reload();
+          editor.open = false; form.reset();
+        } catch (err) {
+          note.textContent = `// ${err.message}`;
+        } finally {
+          btn.disabled = false; btn.textContent = oldText;
+        }
+      });
+
+      reload();
+    });
+  </script>
+</body>
+</html>

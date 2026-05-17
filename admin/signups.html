@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join requests — Admin · NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title">Join requests</h1>
+    <p class="admin-page-sub">Submissions from the home-page Join form.</p>
+
+    <div class="admin-toolbar">
+      <span class="grow"></span>
+      <a class="btn-sm" href="/api/admin/signups?format=csv">⤓ Export CSV</a>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width:160px">When</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Car</th>
+            <th>Instagram</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="5" class="empty">// loading...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $, escapeHtml, fmtDateTime } = window.NCAdmin;
+      const tbody = $('#rows');
+      try {
+        const { signups = [] } = await api('/api/admin/signups');
+        if (!signups.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="empty">No join requests yet.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = signups.map(s => `
+          <tr>
+            <td><span class="num">${escapeHtml(fmtDateTime(s.created_at))}</span></td>
+            <td>${escapeHtml(s.name)}</td>
+            <td><a href="mailto:${escapeHtml(s.email)}">${escapeHtml(s.email)}</a></td>
+            <td>${escapeHtml(s.car || '—')}</td>
+            <td>${s.instagram ? `<a href="https://instagram.com/${encodeURIComponent(s.instagram)}" target="_blank" rel="noopener">@${escapeHtml(s.instagram)}</a>` : '—'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">${err.message}</td></tr>`;
+      }
+    });
+  </script>
+</body>
+</html>

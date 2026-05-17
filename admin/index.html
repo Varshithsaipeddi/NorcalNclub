@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#001489" />
+  <title>Admin — NorCal N Club</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin">
+  <header class="admin-bar">
+    <div class="admin-bar-left">
+      <a href="../index.html" class="nav-brand"><span class="brand-mark small">N</span> <span class="brand-text">NORCAL <em>N</em> CLUB</span></a>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="events.html">Events</a>
+      <a href="rsvps.html">RSVPs</a>
+      <a href="signups.html">Join</a>
+      <a href="members.html">Members</a>
+    </nav>
+    <div class="admin-bar-right">
+      <span data-admin-email>—</span>
+      <a href="/cdn-cgi/access/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <h1 class="admin-page-title">Dashboard</h1>
+    <p class="admin-page-sub">Quick view of what's live and what's pending.</p>
+
+    <div class="tile-grid" id="tiles">
+      <a class="tile" href="events.html">
+        <div class="tile-label">Upcoming events</div>
+        <div class="tile-num" data-num="upcoming">—</div>
+        <div class="tile-desc">Published events on the calendar.</div>
+      </a>
+      <a class="tile" href="rsvps.html">
+        <div class="tile-label">Total RSVPs</div>
+        <div class="tile-num" data-num="rsvps">—</div>
+        <div class="tile-desc">Across all events.</div>
+      </a>
+      <a class="tile" href="signups.html">
+        <div class="tile-label">Join requests</div>
+        <div class="tile-num" data-num="signups">—</div>
+        <div class="tile-desc">From the home-page form.</div>
+      </a>
+      <a class="tile" href="members.html">
+        <div class="tile-label">Garage members</div>
+        <div class="tile-num" data-num="members">—</div>
+        <div class="tile-desc">Profiles shown publicly.</div>
+      </a>
+    </div>
+  </main>
+
+  <script src="admin.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, $ } = window.NCAdmin;
+      try {
+        const [events, rsvps, signups, members] = await Promise.all([
+          api('/api/admin/events'),
+          api('/api/admin/rsvps'),
+          api('/api/admin/signups'),
+          api('/api/admin/members'),
+        ]);
+        const today = new Date().toISOString().slice(0, 10);
+        const upcoming = (events.events || []).filter(e =>
+          e.status === 'published' && (e.starts_at || '').slice(0, 10) >= today
+        ).length;
+        $('[data-num="upcoming"]').textContent = upcoming;
+        $('[data-num="rsvps"]').textContent = (rsvps.rsvps || []).length;
+        $('[data-num="signups"]').textContent = (signups.signups || []).length;
+        $('[data-num="members"]').textContent = (members.members || []).length;
+
+        // Try to surface admin email from a friendly endpoint, fall back to header value.
+        const email = document.cookie.split('; ').find(c => c.startsWith('CF_Authorization='))
+          ? '✓ signed in'
+          : '—';
+        $('[data-admin-email]').textContent = email;
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) {
+          $('#tiles').innerHTML = `<div class="tile"><div class="tile-label">Auth needed</div><div class="tile-desc">If you're not seeing the Cloudflare Access prompt, check the Access app config covers <code>/admin*</code> and <code>/api/admin/*</code>.</div></div>`;
+        } else {
+          $('#tiles').innerHTML = `<div class="tile"><div class="tile-label">Error</div><div class="tile-desc">${err.message}</div></div>`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

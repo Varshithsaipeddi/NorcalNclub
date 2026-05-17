@@ -96,26 +96,15 @@
 
   const load = async () => {
     try {
-      const manifest = await fetch('members/index.json', { cache: 'no-cache' }).then(r => r.json());
-      const files = manifest.members || [];
-      const results = await Promise.allSettled(
-        files.map(f => fetch(`members/${f}`, { cache: 'no-cache' }).then(r => {
-          if (!r.ok) throw new Error(`${f}: ${r.status}`);
-          return r.json();
-        }))
-      );
-      MEMBERS = results
-        .filter(r => r.status === 'fulfilled')
-        .map(r => r.value);
-
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length) console.warn('Some members failed to load:', failed);
-
+      const res = await fetch('/api/members', { cache: 'no-cache' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { members = [] } = await res.json();
+      MEMBERS = members;
       countEl.textContent = MEMBERS.length;
       render();
     } catch (err) {
       console.error(err);
-      grid.innerHTML = `<div class="members-empty">// couldn't load members. Check members/index.json.</div>`;
+      grid.innerHTML = `<div class="members-empty">// couldn't load members. ${err.message}</div>`;
     }
   };
 
